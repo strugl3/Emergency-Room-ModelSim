@@ -1,5 +1,6 @@
 import simpy
 import random
+import math
 
 # Triangular-Verteilung für Behandlungszeiten
 def triangular_dist(minimum, mode, maximum):
@@ -115,6 +116,12 @@ def print_statistics(stats, cw_limit):
     all_times = [patient["total_time"] for patient in stats["patients"]]
     overall_avg_time = sum(all_times) / total_patients
     print(f"Overall average treatment time: {overall_avg_time:.2f} minutes")
+
+    # Standard deviation
+    for patient in stats["patients"]:
+        temp = [math.pow((patient["total_time"] - overall_avg_time),2)]
+    standard_deviation = math.sqrt(sum(temp)/(total_patients-1))
+    print(f"Standard deviation treatment time: {standard_deviation:.2f} minutes")
 
 # Hauptprogramm
 if __name__ == "__main__":

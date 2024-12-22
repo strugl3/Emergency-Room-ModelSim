@@ -1,41 +1,13 @@
-
-# Rooms:
-# - Registration 1
-#   Assigned to queue of CW1 or CW2 only one person
-
-# - Waiting room 2
-#   Patients waiting
-
-# - Casualty wards CW1 and CW2, 3 and 4
-#   
-
-# - X-Ray 5
-#   two person capacity
-
-# - Plaster room 6
-#   only one person
-
-
-# 1) R - CW - Xray - CW - Exit
-
-# 2) R - CW - Plaster - Exit
-
-# 3) R - CW - Xray - Plaster - Xray - CW - Exit
- 
-# 4) R - CW - Exit
-
-
-
-import math
 import simpy
 import random
+import math
 
 # Triangular-Verteilung für Behandlungszeiten
 def triangular_dist(minimum, mode, maximum):
     return random.triangular(minimum, mode, maximum)
 
 # Patiententypen und ihre Prozesse
-def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats):
+def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats, prio):
     arrival_time = env.now  # Record arrival time
 
     # Registrierung
@@ -60,8 +32,9 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
             yield req
             x_time = triangular_dist(2.0, 2.8, 4.1)
             yield env.timeout(x_time)
+            prio = -1
         # Rückkehr zu CW
-        with casualty_ward.request() as req:
+        with casualty_ward.request(priority=prio) as req:
             yield req
             yield env.timeout(cw_time)
     elif patient_type == 2:  # Gips entfernen
@@ -81,7 +54,8 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
         with x_ray.request() as req:
             yield req
             yield env.timeout(x_time)
-        with casualty_ward.request() as req:
+            prio = -1
+        with casualty_ward.request(priority=prio) as req:
             yield req
             yield env.timeout(cw_time)
     # Typ 4 benötigt keine zusätzlichen Schritte (nur CW)
@@ -97,7 +71,7 @@ def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster,
         interarrival_time = random.expovariate(1 / 0.3)
         yield env.timeout(interarrival_time)
         patient_type = random.choices([1, 2, 3, 4], weights=[35, 20, 5, 40], k=1)[0]
-        env.process(patient(env, i, patient_type, registration, cw1, cw2, x_ray, plaster, stats))
+        env.process(patient(env, i, patient_type, registration, cw1, cw2, x_ray, plaster, stats, prio = 0))
 
 
 
@@ -107,8 +81,8 @@ def run_simulation(num_patients=250):
 
     # Ressourcen definieren
     registration = simpy.Resource(env, capacity=1)
-    cw1 = simpy.Resource(env, capacity=2)
-    cw2 = simpy.Resource(env, capacity=2)
+    cw1 = simpy.PriorityResource(env, capacity=2)
+    cw2 = simpy.PriorityResource(env, capacity=2)
     x_ray = simpy.Resource(env, capacity=2)
     plaster = simpy.Resource(env, capacity=1)
 
