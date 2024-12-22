@@ -17,10 +17,10 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
         yield env.timeout(reg_time)
 
     # Zuweisung zu CW1 oder CW2
-    casualty_ward = cw1 if random.random() < 0.6 else cw2
+    casualty_ward = cw2 if random.random() < 0.4 and len(cw2.queue) < cw_limit else cw1
     with casualty_ward.request() as req:
         yield req
-        if casualty_ward == cw2 and len(cw2.queue) < cw_limit:
+        if casualty_ward == cw2 :
             cw_time = triangular_dist(2.8, 4.1, 6.3)
         else:
             cw_time = triangular_dist(1.5, 3.2, 5.0)
