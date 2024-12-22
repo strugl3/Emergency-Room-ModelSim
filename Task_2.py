@@ -6,7 +6,7 @@ def triangular_dist(minimum, mode, maximum):
     return random.triangular(minimum, mode, maximum)
 
 # Patiententypen und ihre Prozesse
-def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats):
+def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats, cw_limit):
     arrival_time = env.now  # Record arrival time
 
     # Registrierung
@@ -19,10 +19,10 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
     casualty_ward = cw1 if random.random() < 0.6 else cw2
     with casualty_ward.request() as req:
         yield req
-        if casualty_ward == cw1:
-            cw_time = triangular_dist(1.5, 3.2, 5.0)
-        else:
+        if casualty_ward == cw2 and len(cw2.queue) < cw_limit:
             cw_time = triangular_dist(2.8, 4.1, 6.3)
+        else:
+            cw_time = triangular_dist(1.5, 3.2, 5.0)
         yield env.timeout(cw_time)
 
     # Weiteres Vorgehen abhängig vom Patiententyp
@@ -63,17 +63,17 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
 
 
 
-def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster, stats):
+def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster, stats, cw_limit):
     for i in range(num_patients):
         interarrival_time = random.expovariate(1 / 0.3)
         yield env.timeout(interarrival_time)
         patient_type = random.choices([1, 2, 3, 4], weights=[35, 20, 5, 40], k=1)[0]
-        env.process(patient(env, i, patient_type, registration, cw1, cw2, x_ray, plaster, stats))
+        env.process(patient(env, i, patient_type, registration, cw1, cw2, x_ray, plaster, stats, cw_limit))
 
 
 
 # Simulationsumgebung
-def run_simulation(num_patients=250):
+def run_simulation(num_patients=250, cw_limit=5):
     env = simpy.Environment()
 
     # Ressourcen definieren
@@ -86,17 +86,18 @@ def run_simulation(num_patients=250):
     # Statistics dictionary
     stats = {"patients": []}
 
-    env.process(generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster, stats))
+    env.process(generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster, stats, cw_limit))
 
     # Simulation starten
     env.run()
 
     # Print statistics
-    print_statistics(stats)
+    print_statistics(stats, cw_limit)
 
-def print_statistics(stats):
+def print_statistics(stats, cw_limit):
     total_patients = len(stats["patients"])
     print(f"Total patients processed: {total_patients}")
+    print(f"Maximum size of CW2 queue: {cw_limit}")
 
     # Group patients by type
     types = {1: [], 2: [], 3: [], 4: []}
