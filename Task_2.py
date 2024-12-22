@@ -123,10 +123,11 @@ def print_statistics(stats, cw_limit):
     print(f"Overall average treatment time: {overall_avg_time:.2f} minutes")
 
     # Standard deviation
+    squared_differences = []
     for patient in stats["patients"]:
-        temp = [math.pow((patient["total_time"] - overall_avg_time),2)]
-    standard_deviation = math.sqrt(sum(temp)/(total_patients-1))
-    print(f"Standard deviation treatment time: {standard_deviation:.2f} minutes")
+        squared_differences.append(math.pow(patient["total_time"] - overall_avg_time, 2))
+    standard_deviation = math.sqrt(sum(squared_differences) / (total_patients - 1))
+    print(f"Standard deviation of treatment time: {standard_deviation:.2f} minutes")
 
 # Hauptprogramm
 if __name__ == "__main__":
