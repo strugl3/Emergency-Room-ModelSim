@@ -18,6 +18,11 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
 
     # Zuweisung zu CW1 oder CW2
     casualty_ward = cw2 if random.random() < 0.4 and len(cw2.queue) < cw_limit else cw1
+
+    # Warten bis Doktoren ankommen
+    if env.now < 0.5:
+        env.timeout(0.5-env.now)
+
     with casualty_ward.request() as req:
         yield req
         if casualty_ward == cw2 :
