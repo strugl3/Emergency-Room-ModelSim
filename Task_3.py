@@ -6,6 +6,13 @@ import math
 def triangular_dist(minimum, mode, maximum):
     return random.triangular(minimum, mode, maximum)
 
+# Bestimmt die Behandlungszeit für CW1 oder CW2
+def get_cw_time(cw1, cw2, casualty_ward):
+    if casualty_ward == cw2 :
+        return triangular_dist(2.8, 4.1, 6.3)
+    else:
+        return triangular_dist(1.5, 3.2, 5.0)
+
 # Patiententypen und ihre Prozesse
 def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats, prio):
     arrival_time = env.now  # Record arrival time
@@ -25,10 +32,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
 
     with casualty_ward.request() as req:
         yield req
-        if casualty_ward == cw1:
-            cw_time = triangular_dist(1.5, 3.2, 5.0)
-        else:
-            cw_time = triangular_dist(2.8, 4.1, 6.3)
+        cw_time = get_cw_time(cw1, cw2, casualty_ward)
         yield env.timeout(cw_time)
 
     # Weiteres Vorgehen abhängig vom Patiententyp
@@ -41,6 +45,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
         # Rückkehr zu CW
         with casualty_ward.request(priority=prio) as req:
             yield req
+            cw_time = get_cw_time(cw1, cw2, casualty_ward)
             yield env.timeout(cw_time)
     elif patient_type == 2:  # Gips entfernen
         with plaster.request() as req:
@@ -62,6 +67,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
             prio = -1
         with casualty_ward.request(priority=prio) as req:
             yield req
+            cw_time = get_cw_time(cw1, cw2, casualty_ward)
             yield env.timeout(cw_time)
     # Typ 4 benötigt keine zusätzlichen Schritte (nur CW)
 
