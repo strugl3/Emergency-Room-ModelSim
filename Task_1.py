@@ -1,31 +1,4 @@
 
-# Rooms:
-# - Registration 1
-#   Assigned to queue of CW1 or CW2 only one person
-
-# - Waiting room 2
-#   Patients waiting
-
-# - Casualty wards CW1 and CW2, 3 and 4
-#   
-
-# - X-Ray 5
-#   two person capacity
-
-# - Plaster room 6
-#   only one person
-
-
-# 1) R - CW - Xray - CW - Exit
-
-# 2) R - CW - Plaster - Exit
-
-# 3) R - CW - Xray - Plaster - Xray - CW - Exit
- 
-# 4) R - CW - Exit
-
-
-
 import math
 import simpy
 import random
