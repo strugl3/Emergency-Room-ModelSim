@@ -1,4 +1,3 @@
-
 import math
 import simpy
 import random
@@ -7,21 +6,42 @@ import csv
 
 def triangular_dist(minimum, mode, maximum):
     """
+    Wrapper for the random.triangular function.
+
+    Parameters:
+        minimum (float): lower bound of distribution
+        mode (float): midpoint of distribution
+        maximum (float): upper bound of distribution
+    
+    Returns: 
+        float: random value of given triangular distribution
     """
     return random.triangular(minimum, mode, maximum)
 
 
 def get_cw_time(cw1, cw2, casualty_ward):
     """
+    Gets the treatment time for casualty ward 1 or casualty ward 2 depending on the set casualty ward for the patient
+
+    Paramters:
+        cw1 (Resource): resource for casualty ward 1
+        cw2 (Resource): resource for casualty ward 2
+        casualty_ward (Resource): set casualty ward for patient x
+
+    Returns:
+        float: treatment time for CW1/CW2 
     """
     if casualty_ward == cw1 :
         return triangular_dist(1.5, 3.2, 5.0)
-    else:
+    elif casualty_ward == cw2:
         return triangular_dist(2.8, 4.1, 6.3)
+    else:
+        return 0
 
 
 def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaster, stats):
     """
+    Simulates a patients process through the emergency room (Task 1)
     """
     arrival_time = env.now  # Record arrival time
 
@@ -36,8 +56,9 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
 
     # Wait until doctors arrive
     if env.now < 30:
-        env.timeout(30-env.now)
+        yield env.timeout(30-env.now)
 
+    # Doctors handle patients in CW1/CW2
     with casualty_ward.request() as req:
         yield req
         cw_time = get_cw_time(cw1, cw2, casualty_ward)
@@ -61,7 +82,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
             plaster_time = triangular_dist(3.0, 3.8, 4.7)
             yield env.timeout(plaster_time)
     
-    # Type 3: - Xray - Plaster - Xray - CW - Exit
+    # Type 3: -> Xray -> Plaster -> Xray -> CW -> Exit
     elif patient_type == 3:
         with x_ray.request() as req:
             yield req
@@ -73,13 +94,14 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
             yield env.timeout(plaster_time)
         with x_ray.request() as req:
             yield req
+            x_time = triangular_dist(2.0, 2.8, 4.1)
             yield env.timeout(x_time)
         with casualty_ward.request() as req:
             yield req
             cw_time = get_cw_time(cw1, cw2, casualty_ward)
             yield env.timeout(cw_time)
     
-    # Type 4: - Exit
+    # Type 4: -> Exit
     else:
         pass
 
@@ -93,6 +115,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
 
 def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster, stats):
     """
+    Generates patients arriving at the emergency department
     """
     for i in range(num_patients):
         interarrival_time = random.expovariate(1 / 0.3)
@@ -103,6 +126,10 @@ def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster,
 
 def run_simulation(num_patients=250):
     """
+    Runs emergency room simulation
+
+    Paramters:
+        num_patients (int): Number of patients for simulation
     """
     env = simpy.Environment()
 
@@ -128,7 +155,13 @@ def run_simulation(num_patients=250):
 
 def calc_statistics(stats):
     """
-    Temp
+    Calulates and displays statistics of the simulation
+
+    Parameters:
+        stats (dict): Stats of each simulated patient
+    
+    Results:
+        dict: A dictionary containing the calculated statistics
     """
     total_patients = len(stats["patients"])
     print(f"Total patients processed: {total_patients}")
@@ -167,6 +200,13 @@ def calc_statistics(stats):
 
 
 def save_statistics(results, filename = "results/Task1.csv"):
+    """
+    Save the calculated statistics to a defined CSV File in the results directory
+
+    Parameters:
+        results (dict): calculated statistics which want to be saved
+        filename (str, optional): Path to the csv file, if doesnt exist will generate
+    """
     header = [
         "Overall Average Time", "Standard Deviation",
         "Count Type 1", "Avg. Time Type 1",
