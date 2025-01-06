@@ -62,9 +62,9 @@ The simulation models four types of patients with different treatment paths:
 
 | Patient Type | Description                | Treatment Steps                       |
 |--------------|----------------------------|---------------------------------------|
-| Type 1       | Requires X-ray              | Registration → CW → X-ray → CW        |
-| Type 2       | Requires plaster treatment  | Registration → CW → Plaster           |
-| Type 3       | Requires multiple treatments| Registration → CW → X-ray → Plaster → X-ray → CW |
+| Type 1       | Requires X-ray              | Registration → CW → X-ray → CW → Exit        |
+| Type 2       | Requires plaster treatment  | Registration → CW → Plaster → Exit            |
+| Type 3       | Requires multiple treatments| Registration → CW → X-ray → Plaster → X-ray → CW → Exit |
 | Type 4       | Minor issues, no treatment  | Registration → Exit                   |
 
 ---
