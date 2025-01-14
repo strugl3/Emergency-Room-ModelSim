@@ -4,6 +4,9 @@ import random
 import os
 import csv
 
+# Sets seed for reproducibility
+random.seed(10)
+
 def triangular_dist(minimum, mode, maximum):
     """
     Wrapper for the random.triangular function.
