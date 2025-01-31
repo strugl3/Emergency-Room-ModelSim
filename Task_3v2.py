@@ -9,13 +9,12 @@ import matplotlib.pyplot as plt
 """Task 3 is to implement a priority Que to the implementation of Task 1. 
     The only differences between the versions are the files the data gets saved in and the Priorities 
     chosen in the Patient function
-    
-    This is Version 1:
-    Priorities are given to Patient Type 1&3 when entering the Casualty Ward a second time
+
+    This is Version 2:
+    Priorities are given to Patient Type 1&3 everytime when entering the Casualty Ward 
     
     Its important to admit, that priority que of simpy uses integer numbers and lower number get priortized
     """
-
 
 # Sets seed for reproducibility
 random.seed(10)
@@ -74,10 +73,17 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
         yield env.timeout(30-env.now)
 
     # Doctors handle patients in CW1/CW2
-    with casualty_ward.request(priority=prio) as req:
-        yield req
-        cw_time = get_cw_time(cw1, cw2, casualty_ward)
-        yield env.timeout(cw_time)
+    #Priority for Type 1 & 3
+    if patient_type % 2 == 0:
+        with casualty_ward.request(priority=0) as req:
+            yield req
+            cw_time = get_cw_time(cw1, cw2, casualty_ward)
+            yield env.timeout(cw_time)
+    else:
+        with casualty_ward.request(priority=-1) as req:
+            yield req
+            cw_time = get_cw_time(cw1, cw2, casualty_ward)
+            yield env.timeout(cw_time)
 
     # Type 1: Xray -> CW (Prio) -> Exit
     if patient_type == 1:
@@ -112,7 +118,7 @@ def patient(env, patient_id, patient_type, registration, cw1, cw2, x_ray, plaste
             yield req
             x_time = triangular_dist(2.0, 2.8, 4.1)
             yield env.timeout(x_time)
-            prio = -1
+            prio=-1
         with casualty_ward.request(priority=prio) as req:
             yield req
             cw_time = get_cw_time(cw1, cw2, casualty_ward)
@@ -140,6 +146,7 @@ def generate_patients(env, num_patients, registration, cw1, cw2, x_ray, plaster,
         yield env.timeout(interarrival_time)
         patient_type = random.choices([1, 2, 3, 4], weights=[35, 20, 5, 40], k=1)[0]
         env.process(patient(env, i, patient_type, registration, cw1, cw2, x_ray, plaster, stats, prio = 0))
+
 
 
 
@@ -218,7 +225,8 @@ def calc_statistics(stats):
 
     return results
 
-def save_raw_data(stats, filename = "raw_data/Task3.csv"):
+
+def save_raw_data(stats, filename = "raw_data/Task3v2.csv"):
     """
        Save the raw data to a defined CSV File in the results directory
 
@@ -248,9 +256,11 @@ def save_raw_data(stats, filename = "raw_data/Task3.csv"):
                 patient["total_time"], patient["type"]
             ]
             writer.writerow(row)
-def save_statistics(results, filename = "results/Task3.csv"):
+def save_statistics(results, filename = "results/Task3v2.csv"):
     """
     Save the calculated statistics to a defined CSV File in the results directory
+
+
 
     Parameters:
         results (dict): calculated statistics which want to be saved
@@ -283,18 +293,18 @@ def save_statistics(results, filename = "results/Task3.csv"):
         ]
         writer.writerow(row)
 
-
 # Hauptprogramm
 if __name__ == "__main__":
-    #run simulation 100 times
+    # run simulation 100 times
     for i in range(0, 100):
         run_simulation()
-    #read results from csv
+
+    # read results from csv
     df = pd.read_csv(
-        r'results\Task3.csv',
+        r'results\Task3v2.csv',
         engine='python', sep=';', header=0)
 
-    #Plot Time overall and per Type
+    # Plot Time overall and per Type
     plt.figure(figsize=(12, 8))
     boxplot1 = df.boxplot(
         column=["Overall Average Time", "Avg. Time Type 1", "Avg. Time Type 2", "Avg. Time Type 3", "Avg. Time Type 4"])
@@ -303,21 +313,20 @@ if __name__ == "__main__":
     plt.ylabel("Average Time(min)", fontsize=16, labelpad=20)
     plt.show()
 
-    #add a row with means
+    # add a row with means
     df.loc['Mean'] = df.mean()
 
-    #get the Maximum/Minimum of every column
+    # get the Maximum/Minimum of every column
     for c in df.columns:
-        df.loc['Max {0}'.format(c)]= df.iloc[df[c].idxmax()]
-        df.loc['Min {0}'.format(c)]= df.iloc[df[c].idxmin()]
+        df.loc['Max {0}'.format(c)] = df.iloc[df[c].idxmax()]
+        df.loc['Min {0}'.format(c)] = df.iloc[df[c].idxmin()]
 
-    #add row with standard Deviation
+    # add row with standard Deviation
     df.loc['Standard Deviation'] = df.std()
 
-    #print the maxima/minima of Time and Patient Types
-    df_test = df[['Overall Average Time','Standard Deviation','Avg. Time Type 1',
-                  'Avg. Time Type 2','Avg. Time Type 3','Avg. Time Type 4','Count Type 1',
-                  'Count Type 2', 'Count Type 3', 'Count Type 4']].tail(len(df.columns)*2+2)
+    # print the maxima/minima of Time and Patient Types
+    df_test = df[['Overall Average Time', 'Standard Deviation', 'Avg. Time Type 1',
+                  'Avg. Time Type 2', 'Avg. Time Type 3', 'Avg. Time Type 4', 'Count Type 1',
+                  'Count Type 2', 'Count Type 3', 'Count Type 4']].tail(len(df.columns) * 2 + 2)
     print(df_test.to_string())
-
 
