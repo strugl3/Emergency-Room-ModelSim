@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
     already spent a certain time at the hopital.
     
     Changes in Priorities are in line:
-    94-103,127-128
+    94-103,127-136
       
     
     Its important to admit, that priority que of simpy uses integer numbers and lower number get priortized
