@@ -7,7 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 """
-    This part of the program is to compare the standard version of the different versions of Task 3
+    This part of the program is to compare the standard version of the different versions
+    of Task 3 and produces graphic output
 """
 
 #Loading raw patient from different Versions to dataframes

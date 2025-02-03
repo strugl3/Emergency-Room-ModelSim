@@ -12,7 +12,10 @@ import matplotlib.pyplot as plt
 
     This is Version 3:
     Priorities are given to to every Patient determined by Time of Arrival.(Earlier Arrival will get priortized
-    
+
+    Changes in Priorities are in line:
+    80,92,119
+      
     Its important to admit, that priority que of simpy uses integer numbers and lower number get priortized
     """
 

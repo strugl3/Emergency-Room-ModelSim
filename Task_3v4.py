@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
     Priorities are given to Patient Type 1&3 the second time entering the Casualty Ward under the condition they 
     already spent a certain time at the hopital.
     
+    Changes in Priorities are in line:
+    94-103,127-128
+      
+    
     Its important to admit, that priority que of simpy uses integer numbers and lower number get priortized
     """
 

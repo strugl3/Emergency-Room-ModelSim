@@ -13,6 +13,9 @@ import matplotlib.pyplot as plt
     This is Version 2:
     Priorities are given to Patient Type 1&3 everytime when entering the Casualty Ward 
     
+    Changes in Priorities are in line:
+    79-88,97,124
+    
     Its important to admit, that priority que of simpy uses integer numbers and lower number get priortized
     """
 
